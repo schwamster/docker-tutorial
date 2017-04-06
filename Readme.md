@@ -14,7 +14,7 @@ docker run debian echo "Welcome to the Focusday"
 
 ![](images/run-debian-hello-world.PNG)
 
-This might take a short time the first time, since docker has to pull the image. A second time should start the command in a fraction of a second.
+This might take a while the first time, since docker has to pull the image. A second run should start the command in a fraction of a second.
 
 Instead of running a "throw away"-container you can also use an container interactively like so:
 
@@ -49,7 +49,7 @@ In this dockerfile we are doing the follwing:
 
 For a full reference of the available instructions in Dockerfile go here [Dockerfile](https://docs.docker.com/engine/reference/builder/)
 
-Now lets build the image with the build command from the created folder:
+Now let's build the image with the build command from the created folder:
 
 ```powershell
 docker build -t cowsay .
@@ -91,7 +91,7 @@ dotnet new webapi
 
 ## First Build
 
-Let's start easy and compile the app on our computer and then adding the output to the runtime image.
+Let's start easy and compile the app on our computer and then add the output to the runtime image.
 
 Run the following command in the root of your project:
 
@@ -109,6 +109,8 @@ WORKDIR /app
 COPY ./publish .
 ENTRYPOINT ["dotnet", "docker-tutorial.dll"]
 ```
+
+This Dockerimage will copy the contents of the publish folder in the root of your project into the app folder on the image.
 
 Build the image:
 
@@ -150,7 +152,7 @@ RUN dotnet publish --output /out/ --configuration Release
 ```
 
 The new instruction we use here is *COPY*. This copies files from our host into the image.
-Also note what happens when you rebuild the image. If you don't change anything nothing will be done. If you change something in code the publish instruction will be executed but not *dotnet restore*. Only if you change some dependency will the *dotnet restore* instruction be executed.
+Also note what happens when you rebuild the image. If you don't change anything nothing will be done. If you change something in the code the publish instruction will be executed but not *dotnet restore*. Only if you change some dependency will the *dotnet restore* instruction be executed.
 For a more detailed description of this "layered" build process check [this](https://docs.docker.com/engine/userguide/storagedriver/imagesandcontainers/) out.
 
 Now let's build the image. Note we have to explicitly specify what Dockerfile we want to use:
