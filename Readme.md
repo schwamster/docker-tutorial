@@ -155,6 +155,14 @@ The new instruction we use here is *COPY*. This copies files from our host into 
 Also note what happens when you rebuild the image. If you don't change anything nothing will be done. If you change something in the code the publish instruction will be executed but not *dotnet restore*. Only if you change some dependency will the *dotnet restore* instruction be executed.
 For a more detailed description of this "layered" build process check [this](https://docs.docker.com/engine/userguide/storagedriver/imagesandcontainers/) out.
 
+Before we build the "build-image" we need to add one more file to avoid that dotnet commands on our host (dotnet restore/build/publish) interfere with the build context. See [this](https://codefresh.io/blog/not-ignore-dockerignore/) for more information. Add a file called .dockerignore with the following content to the root of the project:
+
+```txt
+bin
+obj
+publish
+```
+
 Now let's build the image. Note we have to explicitly specify what Dockerfile we want to use:
 
 ```powershell

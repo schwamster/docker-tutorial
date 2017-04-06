@@ -1,0 +1,4 @@
+# ingore folders that contain results of dotnet restore/build/publish to not interfere with the build context
+bin
+obj
+publish
