@@ -223,6 +223,48 @@ and run the following command:
 docker rm $(docker stop ba51e5dc4036)
 ```
 
+# Publishing & Pulling Images
+
+Now that we build the image it would be nice if we could use that on other docker hosts. To do so we can upload our image to a docker registry.
+There are many different choices for docker registries: hub.docker.com, AWS ECR, Artifactory...
+For simplicity we will be using hub.docker.com which is free for public images.
+
+If you havent done so yet, [create an account ](https://hub.docker.com/).
+
+You can then logon in powershell:
+
+```powershell
+docker login
+```
+
+![](images/docker-login.PNG)
+
+To be able to upload (push) our image we have to prefix our image with our username. My username is schwamster so I would have to run the following command:
+
+```powershell
+docker tag docker-tutorial schwamster/docker-tutorial
+```
+
+Now I can push the image
+
+```powershell
+docker push schwamster/docker-tutorial
+```
+
+![](images/docker-push.PNG)
+
+After the image is pushed I can verify that it worked by opening the following url: [https://hub.docker.com/r/schwamster/docker-tutorial/](https://hub.docker.com/r/schwamster/docker-tutorial/)
+
+To pull the image run the following command:
+
+Now you can also run my image like this:
+
+```powershell
+docker run -p 8182:80 schwamster/docker-tutorial
+```
+
+My image will now be pulled and run on your machine. Check it out under http://localhost:8182/api/values  (Changed port to 8182)
+
 # Proxy<a name="proxy"></a>
 
 If you are forced to go through a proxy you will have to adjust some of the commands we used above. 
