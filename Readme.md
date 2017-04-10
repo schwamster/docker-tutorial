@@ -6,7 +6,7 @@ Your will need to install [dotnet core](https://www.microsoft.com/net/core) and 
 
 ## The Dockerfile
 
-If you already have basic knowledge of Docker skip this introduction and go straight to "Choose an image".
+If you already have basic knowledge of Docker skip this introduction and go straight to ["Choose an image"](#choose_image).
 
 You can run one of the many images that exist ready for usage on [hub.docker.com](https://hub.docker.com). You can for example
 run a command on an instance of Debian a popular Linux Distro with the following command:
@@ -69,7 +69,7 @@ docker run cowsay "Welcome to the Focusday"
 
 ![](images/run-cowsay.png)
 
-## Choose an image
+## Choose an image<a name="choose_image"></a>
 
 Go to [hub.docker.com](https://hub.docker.com) and search for  aspnetcore
 You will find many different choices. If there are no very special reasons i would opt for official images or images uploaded by the involved companies. Two images are interesting:
