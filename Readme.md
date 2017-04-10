@@ -136,7 +136,7 @@ Test the image:
 docker run -p 8181:80 docker-tutorial
 ```
 
-Now you can navigate to the hosted application: http://localhost:8181/api/Values
+Now you can navigate to the hosted application: http://localhost:8181/api/values
 
 You should get a response like this:
 
