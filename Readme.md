@@ -4,15 +4,17 @@ This is related to [this post on devt.to](https://dev.to/schwamster/docker-tutor
 In this tutorial, you will learn how to build and run your first asp.net core docker image. We start of with a very short general docker introduction.
 Your will need to install [dotnet core](https://www.microsoft.com/net/core) and [docker](https://docs.docker.com/engine/installation/) on your machine before your begin this tutorial.
 
+If you are running behind a proxy some of the commands might not work, so be sure to check out the [Proxy-Section](#proxy) below.
+
 ## The Dockerfile
 
-If you already have basic knowledge of Docker skip this introduction and go straight to ["Choose an image"](#choose_image).
+If you already have basic knowledge of Docker skip this introduction and go straight to [Choose an image](#choose_image).
 
 You can run one of the many images that exist ready for usage on [hub.docker.com](https://hub.docker.com). You can for example
 run a command on an instance of Debian a popular Linux Distro with the following command:
 
 ```powershell
-docker run debian echo "Welcome to the Focusday"
+docker run debian echo "Welcome to Docker"
 ```
 
 
@@ -30,6 +32,7 @@ docker run -it debian /bin/bash
 
 Check out the docker run reference to find out more: [docker run](https://docs.docker.com/engine/reference/run/)
 
+You can exit the container by typing "exit" and hitting enter.
 
 But you can not only run other peoples images, you can also create your own images. For that you will need to create a *Dockerfile*. The *Dockerfile* describes an image and all its dependencies in steps.
 
@@ -59,12 +62,14 @@ Now let's build the image with the build command from the created folder:
 docker build -t cowsay .
 ```
 
+If this hangs and you are running behind a proxy check [this](#proxy) out.
+
 ![](images/build-image.PNG)
 
 Now that we have build our image we can run it:
 
 ```powershell
-docker run cowsay "Welcome to the Focusday"
+docker run cowsay "Welcome to Docker"
 ```
 
 ![](images/run-cowsay.png)
@@ -97,9 +102,10 @@ dotnet new webapi
 
 Let's start easy and compile the app on our computer and then add the output to the runtime image.
 
-Run the following command in the root of your project:
+Run the following commands in the root of your project:
 
 ```powershell
+dotnet restore
 dotnet publish -o ./publish
 ```
 
@@ -131,6 +137,13 @@ docker run -p 8181:80 docker-tutorial
 ```
 
 Now you can navigate to the hosted application: http://localhost:8181/api/Values
+
+You should get a response like this:
+
+```json
+["value1","value2"]
+```
+
 Your docker engine might not be reachable through localhost. If so change to the correct url. If you
 are using the docker toolbox with docker-machine you can get the ip with the following command:
 
@@ -176,7 +189,7 @@ docker build -f Dockerfile.build -t docker-tutorial-build .
 With our image build and the project compiled we now want to get at the compiled app. First we create the container with the [create](https://docs.docker.com/engine/reference/commandline/create/) command. This is almost like *docker run* just that the container is never really started. We can however copy out the compiled app.
 
 ```powershell
-docker create --name build-cont build-image
+docker create --name docker-tutorial-build-container docker-tutorial-build
 ```
 ! delete the earlier created publish folder - we will now copy the containers compiled result into that folder:
 
@@ -195,6 +208,62 @@ And of course run it:
 ```powershell
 docker run -p 8181:80 docker-tutorial
 ```
+
+! You probably have to stop the container we started earlier, since that one is already using port 8181. To do so first list the running processes:
+
+```powershell
+docker ps
+```
+
+Copy the container ID, e.g. ba51e5dc4036
+
+and run the following command:
+
+```powershell
+docker rm $(docker stop ba51e5dc4036)
+```
+
+# Proxy<a name="proxy"></a>
+
+If you are forced to go through a proxy you will have to adjust some of the commands we used above. 
+
+## Proxy and docker run
+
+If you need to have internet access from within your container you will have to add the proxy settings to respective environment variables of the container instance. Those can be different depending on what application you use. In general I would set the following:
+
+* http_proxy
+* https_proxy
+
+I noticed that some applications want the variables to be set uppercase -> HTTP_PROXY, HTTPS_PROXY. Other apps might need dedicated environment variables or even changes in config files.
+
+To add the proxy environment variables add each environment variable with the [-e argument](https://docs.docker.com/engine/reference/run/#env-environment-variables) 
+
+Here is an example:
+
+```powershell
+docker run -it -e https_proxy=http://someproxy:8080 -e http_proxy=http://someproxy:8080 debian /bin/bash
+```
+
+To test this run the following command in your container:
+
+```bash
+apt-get update
+```
+
+apt-get update should now work and not run into a timeout.
+
+## Proxy and docker build
+
+If you need internet access while building the image you need to pass the environment variables with the [--build-arg argument](https://docs.docker.com/engine/reference/builder/#arg) just like you do it with run time environment variables. Its just the argument that is called different.
+
+Example:
+
+```powershell
+docker build --build-arg http_proxy=http://someproxy:8080 --build-arg https_proxy=http://someproxy:8080 -t cowsay .
+```
+
+ 
+
 
 # Acknowledgement
 
