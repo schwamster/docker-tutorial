@@ -1,5 +1,9 @@
 # Docker Tutorial with asp.net core
 
+This is related to [this post on devt.to](https://dev.to/schwamster/docker-tutorial-with-for-aspnet-core)
+In this tutorial, you will learn how to build and run your first asp.net core docker image. We start of with a very short general docker introduction.
+Your will need to install [dotnet core](https://www.microsoft.com/net/core) and [docker](https://docs.docker.com/engine/installation/) on your machine before your begin this tutorial.
+
 ## The Dockerfile
 
 If you already have basic knowledge of Docker skip this introduction and go straight to "Choose an image".
