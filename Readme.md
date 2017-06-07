@@ -1,14 +1,20 @@
 # Docker Tutorial with asp.net core
 
+This is related to [this post on devt.to](https://dev.to/schwamster/docker-tutorial-with-for-aspnet-core)
+In this tutorial, you will learn how to build and run your first asp.net core docker image. We start of with a very short general docker introduction.
+Your will need to install [dotnet core](https://www.microsoft.com/net/core) and [docker](https://docs.docker.com/engine/installation/) on your machine before your begin this tutorial.
+
+If you are running behind a proxy some of the commands might not work, so be sure to check out the [Proxy-Section](#proxy) below.
+
 ## The Dockerfile
 
-If you already have basic knowledge of Docker skip this introduction and go straight to "Choose an image".
+If you already have basic knowledge of Docker skip this introduction and go straight to [Choose an image](#choose_image).
 
 You can run one of the many images that exist ready for usage on [hub.docker.com](https://hub.docker.com). You can for example
 run a command on an instance of Debian a popular Linux Distro with the following command:
 
 ```powershell
-docker run debian echo "Welcome to the Focusday"
+docker run debian echo "Welcome to Docker"
 ```
 
 
@@ -26,6 +32,7 @@ docker run -it debian /bin/bash
 
 Check out the docker run reference to find out more: [docker run](https://docs.docker.com/engine/reference/run/)
 
+You can exit the container by typing "exit" and hitting enter.
 
 But you can not only run other peoples images, you can also create your own images. For that you will need to create a *Dockerfile*. The *Dockerfile* describes an image and all its dependencies in steps.
 
@@ -55,17 +62,19 @@ Now let's build the image with the build command from the created folder:
 docker build -t cowsay .
 ```
 
+If this hangs and you are running behind a proxy check [this](#proxy) out.
+
 ![](images/build-image.PNG)
 
 Now that we have build our image we can run it:
 
 ```powershell
-docker run cowsay "Welcome to the Focusday"
+docker run cowsay "Welcome to Docker"
 ```
 
 ![](images/run-cowsay.png)
 
-## Choose an image
+## Choose an image<a name="choose_image"></a>
 
 Go to [hub.docker.com](https://hub.docker.com) and search for  aspnetcore
 You will find many different choices. If there are no very special reasons i would opt for official images or images uploaded by the involved companies. Two images are interesting:
@@ -93,9 +102,10 @@ dotnet new webapi
 
 Let's start easy and compile the app on our computer and then add the output to the runtime image.
 
-Run the following command in the root of your project:
+Run the following commands in the root of your project:
 
 ```powershell
+dotnet restore
 dotnet publish -o ./publish
 ```
 
@@ -126,7 +136,14 @@ Test the image:
 docker run -p 8181:80 docker-tutorial
 ```
 
-Now you can navigate to the hosted application: http://localhost:8181/api/Values
+Now you can navigate to the hosted application: http://localhost:8181/api/values
+
+You should get a response like this:
+
+```json
+["value1","value2"]
+```
+
 Your docker engine might not be reachable through localhost. If so change to the correct url. If you
 are using the docker toolbox with docker-machine you can get the ip with the following command:
 
@@ -191,6 +208,104 @@ And of course run it:
 ```powershell
 docker run -p 8181:80 docker-tutorial
 ```
+
+! You probably have to stop the container we started earlier, since that one is already using port 8181. To do so first list the running processes:
+
+```powershell
+docker ps
+```
+
+Copy the container ID, e.g. ba51e5dc4036
+
+and run the following command:
+
+```powershell
+docker rm $(docker stop ba51e5dc4036)
+```
+
+# Publishing & Pulling Images
+
+Now that we build the image it would be nice if we could use that on other docker hosts. To do so we can upload our image to a docker registry.
+There are many different choices for docker registries: hub.docker.com, AWS ECR, Artifactory...
+For simplicity we will be using hub.docker.com which is free for public images.
+
+If you havent done so yet, [create an account ](https://hub.docker.com/).
+
+You can then logon in powershell:
+
+```powershell
+docker login
+```
+
+![](images/docker-login.PNG)
+
+To be able to upload (push) our image we have to prefix our image with our username. My username is schwamster so I would have to run the following command:
+
+```powershell
+docker tag docker-tutorial schwamster/docker-tutorial
+```
+
+Now I can push the image
+
+```powershell
+docker push schwamster/docker-tutorial
+```
+
+![](images/docker-push.PNG)
+
+After the image is pushed I can verify that it worked by opening the following url: [https://hub.docker.com/r/schwamster/docker-tutorial/](https://hub.docker.com/r/schwamster/docker-tutorial/)
+
+To pull the image run the following command:
+
+Now you can also run my image like this:
+
+```powershell
+docker run -p 8182:80 schwamster/docker-tutorial
+```
+
+My image will now be pulled and run on your machine. Check it out under http://localhost:8182/api/values  (Changed port to 8182)
+
+# Proxy<a name="proxy"></a>
+
+If you are forced to go through a proxy you will have to adjust some of the commands we used above. 
+
+## Proxy and docker run
+
+If you need to have internet access from within your container you will have to add the proxy settings to respective environment variables of the container instance. Those can be different depending on what application you use. In general I would set the following:
+
+* http_proxy
+* https_proxy
+
+I noticed that some applications want the variables to be set uppercase -> HTTP_PROXY, HTTPS_PROXY. Other apps might need dedicated environment variables or even changes in config files.
+
+To add the proxy environment variables add each environment variable with the [-e argument](https://docs.docker.com/engine/reference/run/#env-environment-variables) 
+
+Here is an example:
+
+```powershell
+docker run -it -e https_proxy=http://someproxy:8080 -e http_proxy=http://someproxy:8080 debian /bin/bash
+```
+
+To test this run the following command in your container:
+
+```bash
+apt-get update
+```
+
+apt-get update should now work and not run into a timeout.
+
+## Proxy and docker build
+
+If you need internet access while building the image you need to pass the environment variables with the [--build-arg argument](https://docs.docker.com/engine/reference/builder/#arg) just like you do it with run time environment variables. Its just the argument that is called different.
+
+Example:
+
+```powershell
+docker build --build-arg http_proxy=http://someproxy:8080 --build-arg https_proxy=http://someproxy:8080 -t cowsay .
+```
+
+ 
+
 
 # Acknowledgement
 
