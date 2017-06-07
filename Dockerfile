@@ -1,4 +1,5 @@
 FROM microsoft/aspnetcore
 WORKDIR /app
-COPY ./publish .
+COPY ./out .
+
 ENTRYPOINT ["dotnet", "docker-tutorial.dll"]

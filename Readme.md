@@ -172,7 +172,7 @@ docker build -f Dockerfile.build -t docker-tutorial-build .
 With our image build and the project compiled we now want to get at the compiled app. First we create the container with the [create](https://docs.docker.com/engine/reference/commandline/create/) command. This is almost like *docker run* just that the container is never really started. We can however copy out the compiled app.
 
 ```powershell
-docker create --name build-cont build-image
+docker create --name docker-tutorial-build-container docker-tutorial-build
 ```
 ! delete the earlier created publish folder - we will now copy the containers compiled result into that folder:
 
