@@ -2,6 +2,8 @@
 
 This is related to [this post on devt.to](https://dev.to/schwamster/docker-tutorial-with-for-aspnet-core)
 In this tutorial, you will learn how to build and run your first asp.net core docker image. We start of with a very short general docker introduction.
+After that we choose the "right" images. We will first create a docker container that is responsible for building our source files. For that we copy our source files to the build container. When the build is done we will copy the published project back to the host system and create a runtime image.
+
 Your will need to install [dotnet core](https://www.microsoft.com/net/core) and [docker](https://docs.docker.com/engine/installation/) on your machine before your begin this tutorial.
 
 If you are running behind a proxy some of the commands might not work, so be sure to check out the [Proxy-Section](#proxy) below.
@@ -114,7 +116,7 @@ You should now have a publish folder, that contains your compiled application.
 Now create a new Dockerfile in the root of the application
 
 ```dockerfile
-FROM microsoft/aspnetcore
+FROM microsoft/aspnetcore:2.0
 WORKDIR /app
 COPY ./publish .
 ENTRYPOINT ["dotnet", "docker-tutorial.dll"]
@@ -158,7 +160,7 @@ It is recommended to compile your project within the docker image, since this wi
 So let's create another Dockerfile called Dockerfile.build
 
 ```dockerfile
-FROM microsoft/aspnetcore-build
+FROM microsoft/aspnetcore-build:2.0
 WORKDIR /app
 
 COPY *.csproj .
