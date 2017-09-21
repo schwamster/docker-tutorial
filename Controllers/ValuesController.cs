@@ -13,7 +13,7 @@ namespace docker_tutorial.Controllers
         [HttpGet]
         public IEnumerable<string> Get()
         {
-            return new string[] { "value1", "value2", "version 2" };
+            return new string[] { "value1", "value2", "version core2.0" };
         }
 
         // GET api/values/5
