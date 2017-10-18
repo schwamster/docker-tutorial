@@ -2,7 +2,7 @@
 
 This is related to [this post on devt.to](https://dev.to/schwamster/docker-tutorial-with-for-aspnet-core)
 In this tutorial, you will learn how to build and run your first asp.net core docker image. We start of with a very short general docker introduction.
-After that we choose the "right" images. We will first create a docker container that is responsible for building our source files. For that we copy our source files to the build container. When the build is done we will copy the published project back to the host system and create a runtime image.
+After that we choose the "right" images. We will first create a docker container that is responsible for building our source files. For that we copy our source files to the build container. When the build is done we will copy the published project back to the host system and create a runtime image. After that we explore the handy additon "multi-stage" build to simplify the build.
 
 Your will need to install [dotnet core](https://www.microsoft.com/net/core) and [docker](https://docs.docker.com/engine/installation/) on your machine before your begin this tutorial.
 
@@ -188,7 +188,17 @@ Now let's build the image. Note we have to explicitly specify what Dockerfile we
 docker build -f Dockerfile.build -t docker-tutorial-build .
 ```
 
-With our image build and the project compiled we now want to get at the compiled app. First we create the container with the [create](https://docs.docker.com/engine/reference/commandline/create/) command. This is almost like *docker run* just that the container is never really started. We can however copy out the compiled app.
+We have now build the app in the image. We could now run the container from that image but run the follwoing command first:
+
+```powershell
+docker image ls | sls docker-tutorial
+```
+
+![](images/image-size.PNG)
+
+As you can see the build image is dramatically larger than the image we created before. This is because the build images has absolutley everything you need to build your images (SDK). We don't need that when we run our container. The solution is to create a runtime image.
+
+So next step is to get the compiled app out of the build image. First we create the container with the [create](https://docs.docker.com/engine/reference/commandline/create/) command. This is almost like *docker run* just that the container is never really started. We can however copy out the compiled app.
 
 ```powershell
 docker create --name docker-tutorial-build-container docker-tutorial-build
@@ -223,6 +233,65 @@ and run the following command:
 
 ```powershell
 docker rm $(docker stop ba51e5dc4036)
+```
+
+# Multi-Stage Builds
+
+With Docker Version 17.05 we got a new featuer that makes the build process much easier. The reason we have a build image and a runtime images is, 
+because we want a slimer image at runtime. Since this is a very common requirement for a lot of languages Docker provided us with multi-stage
+builds => [see documentation](https://docs.docker.com/engine/userguide/eng-image/multistage-build/). This means we can now define build and runtime image in one single Dockerfile and we can copy the produced binaries from the build image into 
+our runtime image.
+
+First stop the container if it is still running:
+
+```powershell
+docker stop $(docker ps --filter "ancestor=docker-tutorial" -q)
+```
+
+Add a new Dockerfile with the name Dockerfile.multistage with the following content:
+
+```dockerfile
+# build image
+FROM microsoft/aspnetcore-build:2.0 as build
+WORKDIR /app
+
+COPY *.csproj .
+RUN dotnet restore
+
+COPY . .
+RUN dotnet publish --output /out/ --configuration Release
+
+# runtime image
+FROM microsoft/aspnetcore:2.0
+WORKDIR /app
+COPY --from=build /out .
+ENTRYPOINT [ "dotnet", "docker-tutorial.dll" ]
+```
+
+Building the image is now much easier. All you got to do is to run the follwing:
+
+```powershell
+docker build -f .\Dockerfile.multistage -t docker-tutorial .
+```
+
+Check the image size of the image again:
+
+```powershell
+docker image ls | sls docker-tutorial
+```
+
+The resulting runtime image still has the much smaller footprint, since the intermediate images in a multi-stage build dont make it into the resulting image.
+
+Run it:
+
+```powershell
+docker run -p 8181:80 docker-tutorial
+```
+
+Great! Now we massivly simplified the build process and still kep the image small! At this point I would get rid of the existing Dockerfile and Dockerfile.build and rename Dockerfile.multistage to Dockerfile. Then the build command looks like this:
+
+```powershell
+docker build -t docker-tutorial .
 ```
 
 # Publishing & Pulling Images
